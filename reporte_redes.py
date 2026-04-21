@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, text
 from datetime import datetime
 import os
 
+# Se puso la contraseña en el código para facilitar la prueba del script
 DB_URL = "postgresql://admin_dev:PasswordSeguro123!@localhost:5432/db_extraccion"
 CHUNK_SIZE = 5000 
 
