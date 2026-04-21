@@ -1,0 +1,12 @@
+services:
+  db-banco:
+    image: postgres:16-alpine
+    container_name: mi_bd_pruebas
+    environment:
+      POSTGRES_USER: admin_dev
+      POSTGRES_PASSWORD: PasswordSeguro123!
+      POSTGRES_DB: db_extraccion
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./datos_db:/var/lib/postgresql/data
