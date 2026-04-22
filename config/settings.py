@@ -25,6 +25,6 @@ MAIL_CONFIG = {
     'port': 587,
     'user': os.getenv('MAIL_USER'),
     'pass': os.getenv('MAIL_PASS'),
-    'business_recipients': ['josechiquintal12@gmail.com'],
-    'support_recipients': ['correo@gmail.com']
+    'business_recipients': [os.getenv('BUSINESS_EMAIL')],
+    'support_recipients': [os.getenv('SUPPORT_EMAIL')]
 }
