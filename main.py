@@ -22,9 +22,9 @@ def run_automation():
         report_path = EXPORTS_DIR / f"Report_{timestamp}.xlsx"
         
         generator = ExcelReportGenerator(str(report_path))
-        generator.apply_branding()
-        generator.write_data_as_table(result, DB_CONFIG['chunk_size'])
+        generator.write_data(result, DB_CONFIG['chunk_size'])
         generator.save()
+        
         connection.close()
 
         current_step = "Business report delivery"
