@@ -12,7 +12,12 @@ ASSETS_DIR = BASE_DIR / "assets"
 for folder in [LOGS_DIR, EXPORTS_DIR, ASSETS_DIR]:
     folder.mkdir(exist_ok=True)
 
-COLOR_MUSTARD = '#FFDB58'
+COLOR_MUSTARD = '#F5A800'
+COLOR_GRAY = '#6F7271'
+COLOR_GRAY_LIGHT = '#EAECF0'
+COLOR_BLACK = '#000000'
+FONT_PRIMARY = 'Arial Black'
+FONT_SECONDARY = 'Arial'
 LOGO_PATH = ASSETS_DIR / "banco_logo.png"
 
 DB_CONFIG = {
