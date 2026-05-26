@@ -9,8 +9,16 @@ LOGS_DIR = BASE_DIR / "logs"
 EXPORTS_DIR = BASE_DIR / "exports"
 ASSETS_DIR = BASE_DIR / "assets"
 
+# Intenta leer una ruta externa del .env, si no, usa la local
+SOURCE_DATA_ENV = os.getenv('SOURCE_DATA_PATH')
+SOURCE_DATA_DIR = Path(SOURCE_DATA_ENV) if SOURCE_DATA_ENV else BASE_DIR / "source_data"
+
+# Solo creamos de forma automática las carpetas internas del proyecto
 for folder in [LOGS_DIR, EXPORTS_DIR, ASSETS_DIR]:
     folder.mkdir(exist_ok=True)
+
+if not SOURCE_DATA_ENV:
+    SOURCE_DATA_DIR.mkdir(exist_ok=True)
 
 COLOR_MUSTARD = '#F5A800'
 COLOR_GRAY = '#6F7271'
@@ -19,11 +27,6 @@ COLOR_BLACK = '#000000'
 FONT_PRIMARY = 'Arial Black'
 FONT_SECONDARY = 'Arial'
 LOGO_PATH = ASSETS_DIR / "banco_logo.png"
-
-DB_CONFIG = {
-    'url': f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASS')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}",
-    'chunk_size': 5000
-}
 
 MAIL_CONFIG = {
     'server': 'smtp.gmail.com',

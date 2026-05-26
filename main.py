@@ -1,6 +1,6 @@
 from datetime import datetime
-from config.settings import DB_CONFIG, EXPORTS_DIR
-from src.database_manager import DatabaseManager
+from config.settings import SOURCE_DATA_DIR, EXPORTS_DIR
+from src.file_extractor import FileExtractor
 from src.excel_generator import ExcelReportGenerator
 from src.mail_service import MailService
 from src.logger_manager import get_logger
@@ -10,31 +10,34 @@ log = get_logger("Main")
 def run_automation():
     mailer = MailService()
     current_step = "System Initialization"
-    log.info("Starting automation cycle.")
+    log.info("Starting production file-to-excel ETL automation workflow.")
 
     try:
-        current_step = "Database data extraction"
-        db = DatabaseManager()
-        result, connection = db.get_data_stream("logs_telefonia")
+        current_step = "Resolving execution timeframe parameters"
+        runtime_clock = datetime.now()
+        target_month = runtime_clock.month
+        target_year = runtime_clock.year
 
-        current_step = "Excel file generation"
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        current_step = "Scanning date directories and tracking file chunks"
+        extractor = FileExtractor(SOURCE_DATA_DIR)
+        data_stream = extractor.extract_chunks_for_month(target_month, target_year)
+
+        current_step = "Generating stylized corporate excel report table"
+        timestamp = runtime_clock.strftime("%Y%m%d_%H%M%S")
         report_path = EXPORTS_DIR / f"Report_{timestamp}.xlsx"
         
         generator = ExcelReportGenerator(str(report_path))
-        generator.write_data(result, DB_CONFIG['chunk_size'])
+        generator.write_data_stream(data_stream)
         generator.save()
-        
-        connection.close()
 
-        current_step = "Business report delivery"
+        current_step = "Executing secure automated email distribution"
         if not mailer.send_report(str(report_path)):
-            raise Exception("Operational mail delivery failed.")
+            raise Exception("Operational report delivery protocol failed via SMTP.")
         
-        log.info("Automation cycle completed successfully.")
+        log.info("Automated network reporting sequence completed successfully.")
 
     except Exception as e:
-        log.error(f"Critical failure during [{current_step}]: {e}", exc_info=True)
+        log.error(f"Critical execution break during step [{current_step}]: {e}", exc_info=True)
         mailer.send_error_alert(current_step)
 
 if __name__ == "__main__":
