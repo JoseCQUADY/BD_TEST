@@ -73,6 +73,13 @@ class FileExtractor:
                     break
             
             if employee_cell:
+                if current_employee:
+                    parsed_records.append({
+                        "EMPLOYEE": current_employee,
+                        "EMPLOYEE ID": current_id,
+                        "START DATE": ""
+                    })
+                
                 current_employee = employee_cell.replace("Employee:", "").strip()
                 current_id = ""
                 
@@ -84,7 +91,6 @@ class FileExtractor:
 
             if current_employee:
                 start_date_value = ""
-                
                 for val in row_values:
                     if "/" in val and len(val) >= 8:
                         try:
@@ -94,13 +100,20 @@ class FileExtractor:
                         except ValueError:
                             continue
                 
-                parsed_records.append({
-                    "EMPLOYEE": current_employee,
-                    "EMPLOYEE ID": current_id if current_id else "",
-                    "START DATE": start_date_value
-                })
-                
-                current_employee = None
-                current_id = None
+                if start_date_value:
+                    parsed_records.append({
+                        "EMPLOYEE": current_employee,
+                        "EMPLOYEE ID": current_id,
+                        "START DATE": start_date_value
+                    })
+                    current_employee = None
+                    current_id = None
+
+        if current_employee:
+            parsed_records.append({
+                "EMPLOYEE": current_employee,
+                "EMPLOYEE ID": current_id,
+                "START DATE": ""
+            })
 
         return pd.DataFrame(parsed_records)
