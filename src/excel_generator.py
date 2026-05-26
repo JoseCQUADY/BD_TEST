@@ -22,7 +22,7 @@ class ExcelReportGenerator:
     def _define_formats(self):
         self.fmt_title = self.workbook.add_format({
             'bold': True, 'font_name': FONT_PRIMARY, 'font_size': 28,
-            'font_color': COLOR_GRAY, 'align': 'center', 'valign': 'vcenter'
+            'font_color': COLOR_MUSTARD, 'align': 'center', 'valign': 'vcenter'
         })
 
         self.fmt_contact = self.workbook.add_format({
@@ -34,6 +34,15 @@ class ExcelReportGenerator:
             'bold': True, 'font_name': FONT_SECONDARY, 'font_size': 12,
             'font_color': '#FFFFFF', 'bg_color': COLOR_GRAY,
             'align': 'center', 'valign': 'vcenter', 'border': 1, 'border_color': COLOR_GRAY
+        })
+
+        self.fmt_id_column = self.workbook.add_format({
+            'font_name': FONT_SECONDARY,
+            'font_size': 10,
+            'align': 'left',
+            'valign': 'vcenter',
+            'bg_color': COLOR_MUSTARD,
+            'font_color': '#FFFFFF'
         })
 
         self.fmt_data = self.workbook.add_format({
@@ -117,6 +126,16 @@ class ExcelReportGenerator:
             'style': 'Table Style Light 1',
             'banded_rows': True
         })
+        
+        first_col_index = 0
+
+        for row_num, row_data in enumerate(all_data, start=start_row + 1):
+            self.worksheet.write(
+                row_num,
+                start_col + first_col_index,
+                row_data[first_col_index],
+                self.fmt_id_column
+            )
 
         self._write_footer(end_row + 2, start_col, end_col, total_rows)
 
