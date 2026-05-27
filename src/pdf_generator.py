@@ -1,6 +1,7 @@
+import os
 from datetime import datetime
 from fpdf import FPDF
-from config.settings import COLOR_MUSTARD, COLOR_GRAY, COLOR_GRAY_LIGHT
+from config.settings import COLOR_MUSTARD, COLOR_GRAY, COLOR_GRAY_LIGHT, LOGO_PATH
 from src.logger_manager import get_logger
 
 log = get_logger("PdfGenerator")
@@ -26,13 +27,17 @@ class PdfReportGenerator:
         self.pdf.set_line_width(1.5)
         self.pdf.line(15, 10, 195, 10)
         
+        self.pdf.ln(5)
+        if os.path.exists(LOGO_PATH):
+            self.pdf.image(LOGO_PATH, x=15, y=14, w=30)
+            
         self.pdf.set_font("Helvetica", "B", 24)
         self.pdf.set_text_color(*self._hex_gray)
         self.pdf.cell(180, 15, "AVAYA ACRA", ln=True, align="C")
         
         self.pdf.set_font("Helvetica", "", 9)
         self.pdf.set_text_color(0, 0, 0)
-        contact_info = "San Pedro Garza García, Nuevo León | (81) 5000-2200 | correo@bancobase.com"
+        contact_info = "San Pedro Garza García, Nuevo León  |  (81) 5000-2200  |  correo@bancobase.com"
         self.pdf.cell(180, 5, contact_info, ln=True, align="C")
         self.pdf.ln(10)
         
@@ -112,3 +117,5 @@ class PdfReportGenerator:
         
         log.info(f"Writing binary stream dynamically to target storage: {self.filepath}")
         self.pdf.output(self.filepath)
+
+
