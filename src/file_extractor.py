@@ -1,7 +1,7 @@
 import re
-import pandas as pd
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, date
+from openpyxl import load_workbook
 from src.logger_manager import get_logger
 
 log = get_logger("FileExtractor")
@@ -10,9 +10,10 @@ class FileExtractor:
     def __init__(self, root_directory):
         self.root_directory = Path(root_directory)
         self.date_pattern = re.compile(r"^\d{2}-\d{2}-\d{4}$")
+        self.dash_date_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}.*")
 
     def extract_chunks_for_month(self, target_month, target_year):
-        log.info(f"Starting memory-efficient directory scan for timeframe: {target_year}-{target_month:02d}")
+        log.info(f"Executing ultra-low memory directory scan for timeframe: {target_year}-{target_month:02d}")
         
         valid_folder_discovered = False
 
@@ -45,11 +46,12 @@ class FileExtractor:
             log.info(f"Streaming data stream from binary spreadsheet: {target_file_path.name}")
             
             try:
-                raw_df = pd.read_excel(target_file_path, header=None)
-                normalized_df = self._parse_structured_layout(raw_df)
+                workbook = load_workbook(filename=str(target_file_path), read_only=True, data_only=True)
+                worksheet = workbook.active
                 
-                if not normalized_df.empty:
-                    yield normalized_df
+                yield from self._parse_structured_layout(worksheet)
+                
+                workbook.close()
             except Exception as e:
                 log.error(f"Critical operational failure deserializing data file: {target_file_path.name}")
                 raise e
@@ -57,63 +59,76 @@ class FileExtractor:
         if not valid_folder_discovered:
             raise FileNotFoundError(f"No matching operational target directories found for timeframe: {target_year}-{target_month:02d}")
 
-    def _parse_structured_layout(self, dataframe):
-        parsed_records = []
-        
+    def _parse_structured_layout(self, worksheet):
         current_employee = None
         current_id = None
+        target_col_idx = None
         
-        for _, row in dataframe.iterrows():
-            row_values = [str(val).strip() if pd.notnull(val) else "" for val in row]
+        for row in worksheet.iter_rows(values_only=True):
+            if not row:
+                continue
+                
+            row_values = []
+            for val in row:
+                if val is None:
+                    row_values.append("")
+                elif isinstance(val, (datetime, date)):
+                    row_values.append(val.strftime("%m/%d/%Y"))
+                else:
+                    row_values.append(str(val).strip())
             
-            employee_cell = ""
-            for val in row_values:
+            employee_cell_idx = None
+            for idx, val in enumerate(row_values):
                 if val.startswith("Employee:"):
-                    employee_cell = val
+                    employee_cell_idx = idx
                     break
             
-            if employee_cell:
+            if employee_cell_idx is not None:
                 if current_employee:
-                    parsed_records.append({
+                    yield {
                         "EMPLOYEE": current_employee,
                         "EMPLOYEE ID": current_id,
                         "START DATE": ""
-                    })
+                    }
                 
-                current_employee = employee_cell.replace("Employee:", "").strip()
+                current_employee = row_values[employee_cell_idx].replace("Employee:", "").strip()
                 current_id = ""
+                target_col_idx = None
                 
-                for val in row_values:
+                for idx, val in enumerate(row_values):
                     if "Employee ID:" in val:
                         current_id = val.split("Employee ID:")[-1].strip()
-                        break
+                    if "Supervisor:" in val:
+                        target_col_idx = idx
                 continue
 
-            if current_employee:
+            if current_employee and target_col_idx is not None and target_col_idx < len(row_values):
+                raw_date_cell = row_values[target_col_idx]
                 start_date_value = ""
-                for val in row_values:
-                    if "/" in val and len(val) >= 8:
-                        try:
-                            datetime.strptime(val, "%m/%d/%Y")
-                            start_date_value = val
-                            break
-                        except ValueError:
-                            continue
+                
+                if "/" in raw_date_cell:
+                    start_date_value = raw_date_cell.split(" ")[0].strip()
+                elif self.dash_date_pattern.match(raw_date_cell):
+                    try:
+                        clean_date = raw_date_cell.split(" ")[0].strip()
+                        dt = datetime.strptime(clean_date, "%Y-%m-%d")
+                        start_date_value = dt.strftime("%m/%d/%Y")
+                    except ValueError:
+                        pass
                 
                 if start_date_value:
-                    parsed_records.append({
+                    yield {
                         "EMPLOYEE": current_employee,
                         "EMPLOYEE ID": current_id,
                         "START DATE": start_date_value
-                    })
+                    }
                     current_employee = None
                     current_id = None
+                    target_col_idx = None
 
         if current_employee:
-            parsed_records.append({
+            yield {
                 "EMPLOYEE": current_employee,
                 "EMPLOYEE ID": current_id,
                 "START DATE": ""
-            })
-
-        return pd.DataFrame(parsed_records)
+            }

@@ -1,7 +1,7 @@
 from datetime import datetime
 from config.settings import SOURCE_DATA_DIR, EXPORTS_DIR
 from src.file_extractor import FileExtractor
-from src.excel_generator import ExcelReportGenerator
+from src.pdf_generator import PdfReportGenerator
 from src.mail_service import MailService
 from src.logger_manager import get_logger
 
@@ -10,7 +10,7 @@ log = get_logger("Main")
 def run_automation():
     mailer = MailService()
     current_step = "System Initialization"
-    log.info("Starting production file-to-excel ETL automation workflow.")
+    log.info("Starting production file-to-pdf ETL automation workflow.")
 
     try:
         current_step = "Resolving execution timeframe parameters"
@@ -22,11 +22,11 @@ def run_automation():
         extractor = FileExtractor(SOURCE_DATA_DIR)
         data_stream = extractor.extract_chunks_for_month(target_month, target_year)
 
-        current_step = "Generating stylized corporate excel report table"
+        current_step = "Generating stylized corporate pdf report table"
         timestamp = runtime_clock.strftime("%Y%m%d_%H%M%S")
-        report_path = EXPORTS_DIR / f"Report_{timestamp}.xlsx"
+        report_path = EXPORTS_DIR / f"Report_{timestamp}.pdf"
         
-        generator = ExcelReportGenerator(str(report_path))
+        generator = PdfReportGenerator(str(report_path))
         generator.write_data_stream(data_stream)
         generator.save()
 
