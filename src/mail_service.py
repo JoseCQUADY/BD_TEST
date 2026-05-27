@@ -1,9 +1,5 @@
-import smtplib
 import os
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
+import gc
 from config.settings import MAIL_CONFIG
 from src.logger_manager import get_logger
 
@@ -32,6 +28,12 @@ class MailService:
         )
 
     def _execute_send(self, recipients, subject, body, attachment=None):
+        import smtplib
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.text import MIMEText
+        from email.mime.base import MIMEBase
+        from email import encoders
+
         if len(recipients) > 15:
             log.error("Security safeguard: Recipient limit exceeded.")
             return False
@@ -52,6 +54,7 @@ class MailService:
                 part.add_header('Content-Disposition', 'attachment', filename=os.path.basename(attachment))
                 part.set_param('name', os.path.basename(attachment))
                 message.attach(part)
+                del part
 
             with smtplib.SMTP(MAIL_CONFIG['server'], MAIL_CONFIG['port']) as server:
                 log.info("Starting TLS encryption.")
@@ -59,7 +62,12 @@ class MailService:
                 server.login(self.user, self.password)
                 server.sendmail(self.user, recipients, message.as_string())
             log.info("Email sent successfully.")
+            
+            del message
+            gc.collect()
             return True
         except Exception as e:
             log.error(f"SMTP communication error: {e}")
             return False
+
+

@@ -1,9 +1,7 @@
-# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Environments
 .venv/
 venv/
 ENV/
@@ -11,21 +9,17 @@ env/
 build/
 dist/
 
-# Configuration and Secrets
 .env
 *.local
 config/secrets.*
 
-# Project Specific Folders
 logs/
 exports/
 assets/logo_banco.png
 
-# IDEs
 .vscode/
 .idea/
 
-# OS Files
 .DS_Store
 Thumbs.db
 datos_db/

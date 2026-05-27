@@ -1,13 +1,14 @@
 import os
 from datetime import datetime
-from fpdf import FPDF
-from config.settings import COLOR_MUSTARD, COLOR_GRAY, COLOR_GRAY_LIGHT, LOGO_PATH
 from src.logger_manager import get_logger
 
 log = get_logger("PdfGenerator")
 
 class PdfReportGenerator:
     def __init__(self, filepath):
+        from fpdf import FPDF
+        from config.settings import LOGO_PATH
+        
         self.filepath = filepath
         self.pdf = FPDF(orientation="P", unit="mm", format="A4")
         self.pdf.set_auto_page_break(auto=True, margin=25)
@@ -20,9 +21,6 @@ class PdfReportGenerator:
         self._hex_gray = (111, 114, 113)
         self._hex_gray_light = (234, 236, 240)
         
-        self._write_header_design()
-
-    def _write_header_design(self):
         self.pdf.set_draw_color(*self._hex_mustard)
         self.pdf.set_line_width(1.5)
         self.pdf.line(15, 10, 195, 10)
@@ -85,11 +83,6 @@ class PdfReportGenerator:
             self.total_records += 1
 
     def save(self):
-        if not self.headers_written:
-            self.pdf.set_font("Helvetica", "B", 10)
-            self.pdf.cell(180, 10, "SIN REGISTROS DISPONIBLES", ln=True, align="L")
-            self.pdf.ln(5)
-            
         self.pdf.ln(5)
         self.pdf.set_font("Helvetica", "B", 10)
         self.pdf.set_text_color(0, 0, 0)
@@ -97,25 +90,24 @@ class PdfReportGenerator:
         self.pdf.ln(5)
         
         self.pdf.set_font("Helvetica", "B", 10)
-        self.pdf.set_text_color(*self._hex_mustard)
+        self.pdf.set_text_color((245, 168, 0))
         self.pdf.cell(180, 6, "Nota de Confidencialidad:", ln=True, align="L")
         
         self.pdf.set_font("Helvetica", "I", 8.5)
-        self.pdf.set_text_color(*self._hex_gray)
+        self.pdf.set_text_color((111, 114, 113))
         note_text = "Este documento contiene información técnica confidencial del sistema de telefonía exclusiva para personal de infraestructura."
         self.pdf.cell(180, 5, note_text, ln=True, align="L")
         self.pdf.ln(10)
         
         self.pdf.set_font("Helvetica", "", 9)
-        self.pdf.set_text_color(*self._hex_gray)
+        self.pdf.set_text_color((111, 114, 113))
         self.pdf.cell(180, 5, "Reporte Generado Automáticamente", ln=True, align="C")
         
-        self.pdf.set_draw_color(*self._hex_mustard)
+        self.pdf.set_draw_color(245, 168, 0)
         self.pdf.set_line_width(1.5)
         current_y = self.pdf.get_y() + 2
         self.pdf.line(15, current_y, 195, current_y)
         
-        log.info(f"Writing binary stream dynamically to target storage: {self.filepath}")
         self.pdf.output(self.filepath)
 
 
