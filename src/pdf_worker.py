@@ -10,13 +10,11 @@ def main():
     serialized_data = sys.argv[2]
     
     try:
-        # Importación perezosa dentro del proceso aislado
         from src.pdf_generator import PdfReportGenerator
         
         records = json.loads(serialized_data)
         generator = PdfReportGenerator(report_path)
         
-        # Generación del PDF en su propio espacio de memoria
         generator.write_data_stream(records)
         generator.save()
         
